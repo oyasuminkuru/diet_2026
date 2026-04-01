@@ -752,11 +752,10 @@ async function analyzeNutrition() {
 
     // markdown風テキストをHTMLに変換
     const html = text
-      .replace(/【(.+?)】/g, '<div class="ai-result-title">$1</div>')
-      .replace(/
-/g, '<br>');
+      .replace(/【(.+?)】/g, '<div class="ai-result-title">$1</div>');
+    const htmlWithBr = html.split('\n').join('<br>');
 
-    result.innerHTML = html;
+    result.innerHTML = htmlWithBr;
   } catch(e) {
     result.innerHTML = '<div style="color:#e05555;font-size:12px">分析に失敗しました。もう一度お試しください。</div>';
   }
