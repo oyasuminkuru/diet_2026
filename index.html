@@ -40,7 +40,7 @@
   header::after { content: ''; display: block; border-bottom: 1px solid var(--line); margin-top: 5px; }
   .label-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
   h1 { font-size: clamp(28px, 7vw, 44px); font-weight: 300; line-height: 1.15; letter-spacing: 0.12em; font-family: 'Cormorant Garamond', serif; font-style: italic; }
-  .sub { margin-top: 8px; font-size: 11px; color: var(--muted); font-family: 'Cormorant Garamond', serif; letter-spacing: 0.18em; font-style: italic; }
+  .sub { margin-top: 8px; font-size: 11px; color: #b5a898; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.18em; font-style: normal; }
 
   /* Progress */
   .progress-bar-wrap {
@@ -136,16 +136,30 @@
   .calorie-wrap { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
   .calorie-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; display: block; }
   .calorie-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-  .calorie-cell { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 10px 8px; text-align: center; }
-  .calorie-cell-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 5px; }
-  .calorie-cell input {
+  .calorie-cell { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px 10px; text-align: center; }
+  .calorie-cell-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 7px; }
+  .calorie-cell input[type=number] {
     width: 100%; border: none; background: transparent; text-align: center;
     font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500;
     color: var(--ink); outline: none;
   }
-  .calorie-cell input::placeholder { color: var(--line); font-size: 14px; }
-  .calorie-cell input:focus { color: var(--accent); }
-  .calorie-cell .kcal-unit { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+  .calorie-cell input[type=number]::placeholder { color: var(--line); font-size: 14px; }
+  .calorie-cell input[type=number]:focus { color: var(--accent); }
+  .calorie-cell .kcal-unit { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 8px; }
+  .calorie-cell .meal-divider { border: none; border-top: 1px dashed var(--line); margin: 7px 0; }
+  .calorie-cell input[type=time] {
+    width: 100%; border: none; background: transparent; text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink); outline: none;
+    margin-bottom: 5px;
+  }
+  .calorie-cell input[type=time]:focus { color: var(--accent); }
+  .calorie-cell select {
+    width: 100%; border: none; background: transparent; text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted);
+    outline: none; cursor: pointer; appearance: none; -webkit-appearance: none;
+    padding: 2px 0;
+  }
+  .calorie-cell select:focus { color: var(--accent); }
   .calorie-total {
     background: var(--accent); color: white; border-radius: 10px; padding: 9px 14px;
     display: flex; align-items: center; justify-content: space-between;
@@ -480,24 +494,41 @@ function renderChecklist() {
   const calL = parseFloat(localStorage.getItem(ckey(selectedDay,'l'))) || '';
   const calD = parseFloat(localStorage.getItem(ckey(selectedDay,'d'))) || '';
   const calTotal = (parseFloat(calB)||0) + (parseFloat(calL)||0) + (parseFloat(calD)||0);
+  const timeB = localStorage.getItem(ckey(selectedDay,'tb')) || '';
+  const timeL = localStorage.getItem(ckey(selectedDay,'tl')) || '';
+  const timeD = localStorage.getItem(ckey(selectedDay,'td')) || '';
+  const typeB = localStorage.getItem(ckey(selectedDay,'typeb')) || '';
+  const typeL = localStorage.getItem(ckey(selectedDay,'typel')) || '';
+  const typeD = localStorage.getItem(ckey(selectedDay,'typed')) || '';
+  const mealTypes = ['', '自炊', '外食', 'コンビニ'];
+  function selOpts(cur) { return mealTypes.map(t => `<option value="${t}" ${cur===t?'selected':''}>${t||'種別'}</option>`).join(''); }
   html += `
     <div class="calorie-wrap">
-      <span class="calorie-label">Calories — 今日の食事カロリー</span>
+      <span class="calorie-label">Calories — 今日の食事記録</span>
       <div class="calorie-grid">
         <div class="calorie-cell">
           <div class="calorie-cell-label">BREAKFAST</div>
           <input type="number" id="calB" placeholder="0" min="0" max="9999" value="${calB}" oninput="saveCalorie('b',this.value)">
           <div class="kcal-unit">kcal</div>
+          <hr class="meal-divider">
+          <input type="time" id="timeB" value="${timeB}" onchange="saveMealMeta('tb',this.value)">
+          <select onchange="saveMealMeta('typeb',this.value)">${selOpts(typeB)}</select>
         </div>
         <div class="calorie-cell">
           <div class="calorie-cell-label">LUNCH</div>
           <input type="number" id="calL" placeholder="0" min="0" max="9999" value="${calL}" oninput="saveCalorie('l',this.value)">
           <div class="kcal-unit">kcal</div>
+          <hr class="meal-divider">
+          <input type="time" id="timeL" value="${timeL}" onchange="saveMealMeta('tl',this.value)">
+          <select onchange="saveMealMeta('typel',this.value)">${selOpts(typeL)}</select>
         </div>
         <div class="calorie-cell">
           <div class="calorie-cell-label">DINNER</div>
           <input type="number" id="calD" placeholder="0" min="0" max="9999" value="${calD}" oninput="saveCalorie('d',this.value)">
           <div class="kcal-unit">kcal</div>
+          <hr class="meal-divider">
+          <input type="time" id="timeD" value="${timeD}" onchange="saveMealMeta('td',this.value)">
+          <select onchange="saveMealMeta('typed',this.value)">${selOpts(typeD)}</select>
         </div>
       </div>
       <div class="calorie-total">
@@ -559,6 +590,14 @@ function saveCalorie(meal, val) {
   const total = b + l + d;
   const el = document.getElementById('calTotal');
   if (el) el.textContent = total > 0 ? total + ' kcal' : '— kcal';
+}
+
+function saveMealMeta(key, val) {
+  if (val) {
+    localStorage.setItem(ckey(selectedDay, key), val);
+  } else {
+    localStorage.removeItem(ckey(selectedDay, key));
+  }
 }
 
 function saveMemo() {
