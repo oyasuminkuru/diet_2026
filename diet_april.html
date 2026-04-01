@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4月ダイエットプログラム</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f2efe9;
+    --paper: #faf8f5;
+    --ink: #2c2620;
+    --accent: #8c7b6b;
+    --accent2: #7a9e7e;
+    --muted: #9e9187;
+    --line: #ddd8d0;
+    --check: #8c7b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: linear-gradient(135deg, #ede9e2 0%, #f2efe9 100%);
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 10%, rgba(140,123,107,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(122,158,126,0.06) 0%, transparent 55%);
+    pointer-events: none; z-index: 0;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* Header */
+  header { text-align: center; padding: 32px 0 26px; border-bottom: 1px solid var(--accent); margin-bottom: 28px; }
+  header::after { content: ''; display: block; border-bottom: 1px solid var(--line); margin-top: 5px; }
+  .label-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.25em; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+  h1 { font-size: clamp(28px, 7vw, 44px); font-weight: 300; line-height: 1.15; letter-spacing: 0.12em; font-family: 'Cormorant Garamond', serif; font-style: italic; }
+  .sub { margin-top: 8px; font-size: 11px; color: var(--muted); font-family: 'Cormorant Garamond', serif; letter-spacing: 0.18em; font-style: italic; }
+
+  /* Progress */
+  .progress-bar-wrap {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 2px 12px rgba(44,38,32,0.07);
+  }
+  .progress-text { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .progress-bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+  .progress-pct { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); min-width: 36px; text-align: right; }
+
+  /* Calendar */
+  .calendar-wrap {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+    padding: 18px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(44,38,32,0.06);
+  }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-title { font-size: 14px; font-weight: 700; letter-spacing: 0.06em; }
+  .cal-week-badge {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; background: var(--accent);
+    color: white; padding: 2px 10px; border-radius: 20px; letter-spacing: 0.05em;
+  }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); padding: 4px 0; letter-spacing: 0.05em; }
+  .cal-dow.sun { color: #e05555; }
+  .cal-dow.sat { color: var(--accent); }
+  .cal-day {
+    aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: 8px; cursor: pointer; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500;
+    color: var(--ink); border: 1.5px solid transparent; transition: all 0.18s; position: relative; gap: 2px;
+  }
+  .cal-day:hover { background: #ede8e1; border-color: var(--accent); }
+  .cal-day.sun-day { color: #e05555; }
+  .cal-day.sat-day { color: var(--accent); }
+  .cal-day.selected { background: var(--accent); border-color: var(--accent); color: white !important; }
+  .cal-day.complete { background: #e8f0e8; border-color: var(--accent2); }
+  .cal-day.complete .day-num { color: var(--accent2); }
+  .cal-day.selected { background: var(--accent) !important; border-color: var(--accent) !important; }
+  .cal-day.selected .day-num { color: white !important; }
+  .cal-day.selected .dot { background: white !important; opacity: 1 !important; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); opacity: 0; transition: opacity 0.2s; }
+  .cal-day.has-data .dot { opacity: 1; }
+  .day-num { font-size: 13px; line-height: 1; }
+
+  /* Date header */
+  .date-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+  .date-badge {
+    background: var(--accent); color: white; border-radius: 10px; padding: 8px 14px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.05em; line-height: 1.5;
+    text-align: center; min-width: 52px;
+  }
+  .date-badge .day-big { font-size: 22px; font-weight: 500; display: block; line-height: 1.1; }
+  .date-info .week-label { font-size: 12px; color: var(--accent); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.08em; }
+  .date-info .day-progress { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* Checklist area */
+  .checklist-area {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+    padding: 18px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(44,38,32,0.06);
+  }
+
+  /* Section */
+  .section { margin-bottom: 18px; }
+  .section-head { display: flex; align-items: center; gap: 10px; padding: 8px 0 6px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .section-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .icon-food { background: #e8e0d8; }
+  .icon-move { background: #dce8dc; }
+  .icon-life { background: #e4e0da; }
+  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; }
+  .section-count { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  /* Items */
+  .item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); cursor: pointer; transition: opacity 0.2s; user-select: none; }
+  .item:last-child { border-bottom: none; }
+  .item:hover { opacity: 0.82; }
+  .checkbox { width: 18px; height: 18px; border: 1.5px solid var(--line); border-radius: 5px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .item.done .checkbox { background: var(--check); border-color: var(--check); box-shadow: 0 2px 6px rgba(140,123,107,0.3); }
+  .item.done .checkbox::after { content: '✓'; color: white; font-size: 11px; font-weight: bold; }
+  .item-text { font-size: 13px; line-height: 1.6; flex: 1; transition: color 0.2s; }
+  .item.done .item-text { text-decoration: line-through; color: var(--muted); }
+  .item-note { font-size: 11px; color: var(--muted); margin-top: 1px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; }
+
+  /* Week intro */
+  .week-intro {
+    background: linear-gradient(135deg, #eee9e2, #f5f2ed); border-left: 3px solid var(--accent);
+    padding: 12px 16px; margin-bottom: 16px; font-size: 12.5px; line-height: 1.7;
+    color: var(--ink); border-radius: 0 10px 10px 0;
+  }
+  .week-intro strong { color: var(--accent); }
+
+  /* Calorie tracker */
+  .calorie-wrap { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .calorie-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; display: block; }
+  .calorie-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .calorie-cell { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 10px 8px; text-align: center; }
+  .calorie-cell-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 5px; }
+  .calorie-cell input {
+    width: 100%; border: none; background: transparent; text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500;
+    color: var(--ink); outline: none;
+  }
+  .calorie-cell input::placeholder { color: var(--line); font-size: 14px; }
+  .calorie-cell input:focus { color: var(--accent); }
+  .calorie-cell .kcal-unit { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.08em; }
+  .calorie-total {
+    background: var(--accent); color: white; border-radius: 10px; padding: 9px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .calorie-total-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; opacity: 0.85; }
+  .calorie-total-val { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500; }
+
+  /* Memo */
+  .memo { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .memo label { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+  .memo textarea {
+    width: 100%; min-height: 72px; border: 1px solid var(--line); background: var(--bg);
+    font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--ink); padding: 10px 12px;
+    border-radius: 10px; resize: vertical; outline: none; line-height: 1.7;
+  }
+  .memo textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(140,123,107,0.12); }
+
+  .reset-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted);
+    background: none; border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px;
+    cursor: pointer; margin-top: 14px; transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: #e05555; color: #e05555; }
+
+  footer { text-align: center; margin-top: 36px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* Weight tracker */
+  .weight-wrap {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+    padding: 18px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(44,38,32,0.06);
+  }
+  .weight-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .weight-title { font-size: 14px; font-weight: 700; letter-spacing: 0.05em; }
+  .weight-input-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+    background: var(--bg); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line);
+  }
+  .weight-day-label { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); min-width: 60px; font-weight: 500; }
+  .weight-input {
+    flex: 1; border: none; background: transparent; font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px; font-weight: 500; color: var(--ink); outline: none; text-align: center;
+  }
+  .weight-input::placeholder { color: var(--line); }
+  .weight-unit { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+  .weight-save-btn {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 7px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
+    cursor: pointer; transition: opacity 0.2s; white-space: nowrap;
+  }
+  .weight-save-btn:hover { opacity: 0.85; }
+  .weight-diff { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+  .weight-diff.plus { color: #e05555; background: #fdeaea; }
+  .weight-diff.minus { color: var(--accent2); background: #dff5ef; }
+  .weight-diff.zero { color: var(--muted); background: var(--bg); }
+  canvas#weightChart { width: 100% !important; }
+  .weight-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px;
+  }
+  .stat-box {
+    background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; border: 1px solid var(--line);
+  }
+  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-val { font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 500; color: var(--ink); }
+  .stat-val.good { color: var(--accent2); }
+  .stat-val.bad { color: #e05555; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="label-tag">April 2026</div>
+    <h1>APRIL DIET<br>PROGRAM</h1>
+    <div class="sub">Goal: −1.0 kg / 30 days</div>
+  </header>
+
+  <div class="progress-bar-wrap">
+    <span class="progress-text">月間進捗</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="progress-pct" id="progressPct">0%</span>
+  </div>
+
+  <div class="calendar-wrap">
+    <div class="cal-header">
+      <div class="cal-title">2026年 4月</div>
+      <div class="cal-week-badge" id="calWeekBadge">Week 1</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- Weight tracker -->
+  <div class="weight-wrap">
+    <div class="weight-header">
+      <div class="weight-title">⚖️ 体重記録</div>
+      <div id="weightDiff"></div>
+    </div>
+    <div class="weight-input-row">
+      <div class="weight-day-label" id="weightDayLabel">4月1日</div>
+      <input class="weight-input" type="number" id="weightInput" placeholder="00.0" step="0.1" min="30" max="200">
+      <div class="weight-unit">kg</div>
+      <button class="weight-save-btn" onclick="saveWeight()">記録</button>
+    </div>
+    <canvas id="weightChart" height="140"></canvas>
+    <div class="weight-stats">
+      <div class="stat-box"><div class="stat-label">START</div><div class="stat-val" id="statStart">—</div></div>
+      <div class="stat-box"><div class="stat-label">CURRENT</div><div class="stat-val" id="statCurrent">—</div></div>
+      <div class="stat-box"><div class="stat-label">CHANGE</div><div class="stat-val" id="statChange">—</div></div>
+    </div>
+  </div>
+
+  <div class="checklist-area" id="checklistArea"></div>
+
+  <footer>Kusano Design — April 2026</footer>
+</div>
+
+<script>
+const WEEKS = [
+  {
+    label:'Week 1', theme:'生活習慣の棚卸し',
+    intro:'いきなり頑張りすぎない。まず「今の自分」を把握して、続けられる土台を作る週です。',
+    sections:[
+      {id:'food',icon:'🍽',title:'食事',cls:'icon-food',items:[
+        {text:'3食のタイミングを記録する',note:'何時に何を食べたかメモする'},
+        {text:'夜21時以降の食事を控える',note:'どうしても食べたいなら軽いものに'},
+        {text:'甘い飲み物をお茶か水に替える',note:'コーヒー・お茶はOK。砂糖入り飲料を減らす'},
+        {text:'好きなものを食べる日 🎉',note:'今日は好きなものを楽しもう！ストレス管理も大事', dows:[6]},
+      ]},
+      {id:'move',icon:'🚶',title:'運動',cls:'icon-move',items:[
+        {text:'10分のウォーキング 🚶',note:'通勤・買い物ついでに歩くだけでもOK', dows:[1,3,5]},
+        {text:'エレベーターの代わりに階段を使う',note:'毎日できる小さな積み重ね'},
+      ]},
+      {id:'life',icon:'💤',title:'生活習慣',cls:'icon-life',items:[
+        {text:'毎朝同じ時間に体重を計り記録する',note:'起床後・トイレ後・空腹状態で計ると正確'},
+        {text:'1日1.5〜2リットルの水を飲む',note:'食前にコップ1杯の水で食べすぎ予防にも'},
+        {text:'睡眠を6〜7時間確保する',note:'睡眠不足は食欲増進ホルモンを増やす'},
+      ]},
+    ]
+  },
+  {
+    label:'Week 2', theme:'食事の質を整える',
+    intro:'先週の習慣を続けながら、何を食べるかを少し意識し始める週です。',
+    sections:[
+      {id:'food',icon:'🍽',title:'食事',cls:'icon-food',items:[
+        {text:'昼食か夕食に野菜を多めに取り入れる',note:'サラダ・味噌汁・炒め物でOK'},
+        {text:'白米を減らし豆腐・卵・魚などを増やす',note:'タンパク質で満腹感を上げる'},
+        {text:'コンビニ菓子を週3回以下に抑える',note:'ナッツ・ヨーグルト・果物に置き換えると◎'},
+        {text:'よく噛んでゆっくり食べる',note:'一口20〜30回が目安。満足感が上がる'},
+      ]},
+      {id:'move',icon:'🚶',title:'運動',cls:'icon-move',items:[
+        {text:'ウォーキング週3回・15分 🚶',note:'少しペースを上げて歩くと効果UP', dows:[1,3,5]},
+        {text:'寝る前に軽いストレッチを5分やる',note:'YouTube「ストレッチ 5分」で検索するだけでOK'},
+      ]},
+      {id:'life',icon:'💤',title:'生活習慣',cls:'icon-life',items:[
+        {text:'Week 1の体重と比較して記録する',note:'増減より「記録を続けた自分」を評価する'},
+        {text:'夜のスマホを就寝1時間前にやめてみる',note:'睡眠の質が上がり、次の日の食欲も安定する'},
+      ]},
+    ]
+  },
+  {
+    label:'Week 3', theme:'運動量を少し上げる',
+    intro:'食事と生活習慣が安定してきたら、体を動かす量を増やしていく週です。',
+    sections:[
+      {id:'food',icon:'🍽',title:'食事',cls:'icon-food',items:[
+        {text:'週2回は外食を自炊か弁当に置き換える',note:'難しければコンビニの和定食・サラダチキン活用'},
+        {text:'揚げ物を週2回以下に抑える',note:'焼き・蒸し・煮物に変えるだけでカロリー大幅減'},
+        {text:'Week 1〜2の食事改善を継続する',note:'新しいことを増やすより「続ける」方が大事'},
+      ]},
+      {id:'move',icon:'🚶',title:'運動',cls:'icon-move',items:[
+        {text:'ウォーキング週4回・20分 🚶',note:'習慣になってきたら少しずつ距離を伸ばす', dows:[1,3,5,6]},
+        {text:'スクワット10回×2セット 💪',note:'筋肉量を増やして代謝UP。テレビを見ながらでも', dows:[1,3,5]},
+        {text:'ストレッチを毎晩続ける',note:'先週から継続。習慣化が目標'},
+      ]},
+      {id:'life',icon:'💤',title:'生活習慣',cls:'icon-life',items:[
+        {text:'ストレスを感じたとき食べていないか振り返る',note:'ストレス食いに気づくだけで抑制効果あり'},
+        {text:'体重が減っていなくても続ける',note:'体の変化は3〜4週目から出始めることが多い'},
+      ]},
+    ]
+  },
+  {
+    label:'Week 4', theme:'習慣の定着と振り返り',
+    intro:'ここまで来たら十分すごい。最終週は「続けられた習慣」を確認し、来月以降に繋げる週です。',
+    sections:[
+      {id:'food',icon:'🍽',title:'食事',cls:'icon-food',items:[
+        {text:'効果があった食習慣を3つ書き出す',note:'来月もそれだけ続ければ十分'},
+        {text:'甘い飲み物・深夜食・食べすぎを控える',note:'継続こそが最強のダイエット'},
+      ]},
+      {id:'move',icon:'🚶',title:'運動',cls:'icon-move',items:[
+        {text:'ウォーキング週4回・25〜30分 🚶',note:'無理なら20分のままでOK', dows:[1,3,5,6]},
+        {text:'スクワット＋腹筋10回 💪',note:'腹筋は仰向けで膝を立てるクランチが安全', dows:[1,3,5]},
+        {text:'ストレッチを継続する',note:'毎晩の習慣として定着させる'},
+      ]},
+      {id:'life',icon:'💤',title:'振り返り',cls:'icon-life',items:[
+        {text:'月初と月末の体重を比較する',note:'体重より「習慣が変わったか」に注目する'},
+        {text:'来月も続けたい習慣を1〜3つ決める',note:'少ない方がいい。続くことが正解'},
+        {text:'4週間続けた自分を認める',note:'どんな結果でも、始めて続けた事実は本物'},
+      ]},
+    ]
+  },
+];
+
+const APRIL_DAYS = 30;
+const START_DOW = 3; // 4/1 = 水曜日
+const DOW_NAMES = ['日','月','火','水','木','金','土'];
+
+let selectedDay = 1;
+
+// dows指定がある項目は該当曜日のみ表示
+function isItemVisible(item, dow) {
+  return !item.dows || item.dows.includes(dow);
+}
+
+function getWeekIndex(day) {
+  if (day <= 7) return 0;
+  if (day <= 14) return 1;
+  if (day <= 21) return 2;
+  return 3;
+}
+
+function skey(day, wi, si, ii) { return `diet26-d${day}-w${wi}-s${si}-i${ii}`; }
+function mkey(day) { return `diet26-memo-d${day}`; }
+
+function hasDayData(day, wi) {
+  return WEEKS[wi].sections.some((sec, si) =>
+    sec.items.some((_, ii) => localStorage.getItem(skey(day, wi, si, ii)) === 'true')
+  );
+}
+function isDayComplete(day, wi) {
+  return WEEKS[wi].sections.every((sec, si) =>
+    sec.items.every((_, ii) => localStorage.getItem(skey(day, wi, si, ii)) === 'true')
+  );
+}
+
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['日','月','火','水','木','金','土'].forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow' + (i===0?' sun':i===6?' sat':'');
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+  for (let i = 0; i < START_DOW; i++) grid.appendChild(document.createElement('div'));
+
+  for (let day = 1; day <= APRIL_DAYS; day++) {
+    const dow = (START_DOW + day - 1) % 7;
+    const wi = getWeekIndex(day);
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    if (dow === 0) el.classList.add('sun-day');
+    if (dow === 6) el.classList.add('sat-day');
+    if (day === selectedDay) el.classList.add('selected');
+    if (hasDayData(day, wi)) el.classList.add('has-data');
+    if (isDayComplete(day, wi)) el.classList.add('complete');
+    el.innerHTML = `<span class="day-num">${day}</span><span class="dot"></span>`;
+    el.onclick = () => selectDay(day);
+    el.id = `cal-day-${day}`;
+    grid.appendChild(el);
+  }
+}
+
+function refreshCalDay(day) {
+  const wi = getWeekIndex(day);
+  const el = document.getElementById(`cal-day-${day}`);
+  if (!el) return;
+  el.classList.toggle('has-data', hasDayData(day, wi));
+  el.classList.toggle('complete', isDayComplete(day, wi));
+}
+
+function selectDay(day) {
+  selectedDay = day;
+  document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
+  const el = document.getElementById(`cal-day-${day}`);
+  if (el) el.classList.add('selected');
+  const wi = getWeekIndex(day);
+  document.getElementById('calWeekBadge').textContent = WEEKS[wi].label;
+  renderChecklist();
+  updateOverallProgress();
+}
+
+function renderChecklist() {
+  const area = document.getElementById('checklistArea');
+  const wi = getWeekIndex(selectedDay);
+  const w = WEEKS[wi];
+  const dow = (START_DOW + selectedDay - 1) % 7;
+
+  let total = 0, done = 0;
+  w.sections.forEach((sec, si) => sec.items.forEach((item, ii) => {
+    if (!isItemVisible(item, dow)) return;
+    total++;
+    if (localStorage.getItem(skey(selectedDay, wi, si, ii)) === 'true') done++;
+  }));
+
+  let html = `
+    <div class="date-header">
+      <div class="date-badge">
+        <span class="day-big">${selectedDay}</span>${DOW_NAMES[dow]}
+      </div>
+      <div class="date-info">
+        <div class="week-label">${w.label} — ${w.theme}</div>
+        <div class="day-progress" id="dayProgress">${done} / ${total} 完了</div>
+      </div>
+    </div>
+    <div class="week-intro"><strong>${w.label}：${w.theme}</strong><br>${w.intro}</div>
+  `;
+
+  w.sections.forEach((sec, si) => {
+    const visibleItems = sec.items.filter(item => isItemVisible(item, dow));
+    if (visibleItems.length === 0) return;
+    const secDone = visibleItems.filter((item, vi) => {
+      const ii = sec.items.indexOf(item);
+      return localStorage.getItem(skey(selectedDay, wi, si, ii)) === 'true';
+    }).length;
+    html += `<div class="section">
+      <div class="section-head">
+        <div class="section-icon ${sec.cls}">${sec.icon}</div>
+        <div class="section-title">${sec.title}</div>
+        <div class="section-count" id="cnt-${si}">${secDone}/${visibleItems.length}</div>
+      </div>`;
+    sec.items.forEach((item, ii) => {
+      if (!isItemVisible(item, dow)) return;
+      const checked = localStorage.getItem(skey(selectedDay, wi, si, ii)) === 'true';
+      const dowBadge = item.dows ? `<span style="font-family:'DM Mono',monospace;font-size:10px;background:#eef1fc;color:var(--accent);padding:1px 6px;border-radius:4px;margin-left:6px">${item.dows.map(d=>['日','月','火','水','木','金','土'][d]).join('・')}曜</span>` : '';
+      html += `<div class="item${checked?' done':''}" onclick="toggleItem(${si},${ii},this)">
+        <div class="checkbox"></div>
+        <div><div class="item-text">${item.text}${dowBadge}</div><div class="item-note">${item.note}</div></div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  const memo = localStorage.getItem(mkey(selectedDay)) || '';
+  const calB = parseFloat(localStorage.getItem(ckey(selectedDay,'b'))) || '';
+  const calL = parseFloat(localStorage.getItem(ckey(selectedDay,'l'))) || '';
+  const calD = parseFloat(localStorage.getItem(ckey(selectedDay,'d'))) || '';
+  const calTotal = (parseFloat(calB)||0) + (parseFloat(calL)||0) + (parseFloat(calD)||0);
+  html += `
+    <div class="calorie-wrap">
+      <span class="calorie-label">Calories — 今日の食事カロリー</span>
+      <div class="calorie-grid">
+        <div class="calorie-cell">
+          <div class="calorie-cell-label">BREAKFAST</div>
+          <input type="number" id="calB" placeholder="0" min="0" max="9999" value="${calB}" oninput="saveCalorie('b',this.value)">
+          <div class="kcal-unit">kcal</div>
+        </div>
+        <div class="calorie-cell">
+          <div class="calorie-cell-label">LUNCH</div>
+          <input type="number" id="calL" placeholder="0" min="0" max="9999" value="${calL}" oninput="saveCalorie('l',this.value)">
+          <div class="kcal-unit">kcal</div>
+        </div>
+        <div class="calorie-cell">
+          <div class="calorie-cell-label">DINNER</div>
+          <input type="number" id="calD" placeholder="0" min="0" max="9999" value="${calD}" oninput="saveCalorie('d',this.value)">
+          <div class="kcal-unit">kcal</div>
+        </div>
+      </div>
+      <div class="calorie-total">
+        <span class="calorie-total-label">TOTAL</span>
+        <span class="calorie-total-val" id="calTotal">${calTotal > 0 ? calTotal + ' kcal' : '— kcal'}</span>
+      </div>
+    </div>
+    <div class="memo">
+      <label>Memo — 今日の気づき・体調メモ</label>
+      <textarea id="memoArea" placeholder="ここに自由に記録してください…" onchange="saveMemo()">${memo}</textarea>
+    </div>
+    <button class="reset-btn" onclick="resetDay()">この日のチェックをリセット</button>
+  `;
+  area.innerHTML = html;
+}
+
+function toggleItem(si, ii, el) {
+  el.classList.toggle('done');
+  const wi = getWeekIndex(selectedDay);
+  localStorage.setItem(skey(selectedDay, wi, si, ii), el.classList.contains('done') ? 'true' : 'false');
+
+  // update section count
+  const dow2 = (START_DOW + selectedDay - 1) % 7;
+  const sec = WEEKS[wi].sections[si];
+  const visItems = sec.items.filter(item => isItemVisible(item, dow2));
+  const secDone = visItems.filter(item => {
+    const iii = sec.items.indexOf(item);
+    return localStorage.getItem(skey(selectedDay, wi, si, iii)) === 'true';
+  }).length;
+  const cntEl = document.getElementById(`cnt-${si}`);
+  if (cntEl) cntEl.textContent = `${secDone}/${visItems.length}`;
+
+  // update day progress
+  let total = 0, done = 0;
+  WEEKS[wi].sections.forEach((s, ssi) => s.items.forEach((item, iii) => {
+    if (!isItemVisible(item, dow2)) return;
+    total++;
+    if (localStorage.getItem(skey(selectedDay, wi, ssi, iii)) === 'true') done++;
+  }));
+  document.getElementById('dayProgress').textContent = `${done} / ${total} 完了`;
+
+  refreshCalDay(selectedDay);
+  updateOverallProgress();
+}
+
+function ckey(day, meal) { return `diet26-cal-d${day}-${meal}`; }
+
+function saveCalorie(meal, val) {
+  const v = parseFloat(val);
+  if (!isNaN(v) && v >= 0) {
+    localStorage.setItem(ckey(selectedDay, meal), v);
+  } else {
+    localStorage.removeItem(ckey(selectedDay, meal));
+  }
+  // 合計更新
+  const b = parseFloat(localStorage.getItem(ckey(selectedDay,'b'))) || 0;
+  const l = parseFloat(localStorage.getItem(ckey(selectedDay,'l'))) || 0;
+  const d = parseFloat(localStorage.getItem(ckey(selectedDay,'d'))) || 0;
+  const total = b + l + d;
+  const el = document.getElementById('calTotal');
+  if (el) el.textContent = total > 0 ? total + ' kcal' : '— kcal';
+}
+
+function saveMemo() {
+  localStorage.setItem(mkey(selectedDay), document.getElementById('memoArea').value);
+}
+
+function resetDay() {
+  if (!confirm(`4月${selectedDay}日のチェックをリセットしますか？`)) return;
+  const wi = getWeekIndex(selectedDay);
+  WEEKS[wi].sections.forEach((sec, si) =>
+    sec.items.forEach((_, ii) => localStorage.removeItem(skey(selectedDay, wi, si, ii)))
+  );
+  refreshCalDay(selectedDay);
+  renderChecklist();
+  updateOverallProgress();
+}
+
+function updateOverallProgress() {
+  let total = 0, done = 0;
+  for (let day = 1; day <= APRIL_DAYS; day++) {
+    const wi = getWeekIndex(day);
+    WEEKS[wi].sections.forEach((sec, si) => sec.items.forEach((_, ii) => {
+      total++;
+      if (localStorage.getItem(skey(day, wi, si, ii)) === 'true') done++;
+    }));
+  }
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// Init
+buildCalendar();
+renderChecklist();
+updateOverallProgress();
+
+// ─── Weight tracker ──────────────────────────────────────────────
+function wkey(day) { return `diet26-weight-d${day}`; }
+
+let weightChart = null;
+
+function initWeightChart() {
+  const ctx = document.getElementById('weightChart').getContext('2d');
+  const labels = Array.from({length: APRIL_DAYS}, (_, i) => `${i+1}`);
+  const data = Array.from({length: APRIL_DAYS}, (_, i) => {
+    const v = localStorage.getItem(wkey(i+1));
+    return v ? parseFloat(v) : null;
+  });
+
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '体重 (kg)',
+        data,
+        borderColor: '#8c7b6b',
+        backgroundColor: 'rgba(140,123,107,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: data.map((v, i) => i+1 === selectedDay ? '#8c7b6b' : 'white'),
+        pointBorderColor: '#8c7b6b',
+        pointBorderWidth: 2,
+        pointRadius: data.map((v, i) => v !== null ? (i+1 === selectedDay ? 6 : 4) : 0),
+        pointHoverRadius: 6,
+        tension: 0.35,
+        fill: true,
+        spanGaps: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y} kg`,
+            title: ctx => `4月${ctx[0].label}日`,
+          },
+          backgroundColor: '#2c2620',
+          titleFont: { family: 'IBM Plex Mono', size: 11 },
+          bodyFont: { family: 'IBM Plex Mono', size: 13 },
+          padding: 10,
+          cornerRadius: 8,
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#ddd8d0', lineWidth: 0.5 },
+          ticks: { font: { family: 'IBM Plex Mono', size: 9 }, color: '#9e9187',
+            callback: (val, i) => (i+1) % 5 === 1 || i === 29 ? `${i+1}` : '' }
+        },
+        y: {
+          grid: { color: '#ddd8d0', lineWidth: 0.5 },
+          ticks: { font: { family: 'IBM Plex Mono', size: 10 }, color: '#9e9187',
+            callback: v => `${v}kg` },
+          suggestedMin: undefined,
+          suggestedMax: undefined,
+        }
+      }
+    }
+  });
+  updateWeightStats();
+}
+
+function syncWeightUI() {
+  // ラベル更新
+  document.getElementById('weightDayLabel').textContent = `4月${selectedDay}日`;
+  // インプット更新
+  const saved = localStorage.getItem(wkey(selectedDay));
+  document.getElementById('weightInput').value = saved || '';
+  // 前日差分
+  updateWeightDiff();
+}
+
+function updateWeightDiff() {
+  const diffEl = document.getElementById('weightDiff');
+  const today = parseFloat(localStorage.getItem(wkey(selectedDay)));
+  // 前日を探す（記録がある直近の日）
+  let prev = null;
+  for (let d = selectedDay - 1; d >= 1; d--) {
+    const v = parseFloat(localStorage.getItem(wkey(d)));
+    if (!isNaN(v)) { prev = v; break; }
+  }
+  if (isNaN(today) || prev === null) { diffEl.innerHTML = ''; return; }
+  const diff = (today - prev).toFixed(1);
+  const cls = diff > 0 ? 'plus' : diff < 0 ? 'minus' : 'zero';
+  const sign = diff > 0 ? '+' : '';
+  diffEl.innerHTML = `<span class="weight-diff ${cls}">${sign}${diff} kg</span>`;
+}
+
+function saveWeight() {
+  const val = parseFloat(document.getElementById('weightInput').value);
+  if (isNaN(val) || val < 30 || val > 200) {
+    document.getElementById('weightInput').focus(); return;
+  }
+  localStorage.setItem(wkey(selectedDay), val.toFixed(1));
+
+  // グラフ更新
+  weightChart.data.datasets[0].data[selectedDay - 1] = val;
+  weightChart.data.datasets[0].pointRadius[selectedDay - 1] = 6;
+  recalcYAxis();
+  weightChart.update('active');
+
+  updateWeightDiff();
+  updateWeightStats();
+}
+
+function recalcYAxis() {
+  const vals = weightChart.data.datasets[0].data.filter(v => v !== null);
+  if (vals.length < 2) return;
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const pad = Math.max((max - min) * 0.5, 0.5);
+  weightChart.options.scales.y.suggestedMin = Math.floor((min - pad) * 2) / 2;
+  weightChart.options.scales.y.suggestedMax = Math.ceil((max + pad) * 2) / 2;
+}
+
+function updateWeightChart() {
+  if (!weightChart) return;
+  // 選択日のポイント強調
+  weightChart.data.datasets[0].pointBackgroundColor =
+    weightChart.data.datasets[0].data.map((v, i) => v !== null && i+1 === selectedDay ? '#8c7b6b' : 'white');
+  weightChart.data.datasets[0].pointRadius =
+    weightChart.data.datasets[0].data.map((v, i) => v !== null ? (i+1 === selectedDay ? 6 : 4) : 0);
+  weightChart.update('none');
+}
+
+function updateWeightStats() {
+  const vals = Array.from({length: APRIL_DAYS}, (_, i) => {
+    const v = parseFloat(localStorage.getItem(wkey(i+1)));
+    return isNaN(v) ? null : v;
+  });
+  const recorded = vals.filter(v => v !== null);
+  const startEl = document.getElementById('statStart');
+  const curEl = document.getElementById('statCurrent');
+  const chgEl = document.getElementById('statChange');
+
+  if (recorded.length === 0) {
+    startEl.textContent = '—'; curEl.textContent = '—'; chgEl.textContent = '—';
+    chgEl.className = 'stat-val'; return;
+  }
+  const first = recorded[0];
+  // 直近記録
+  let latest = null;
+  for (let d = APRIL_DAYS; d >= 1; d--) {
+    const v = parseFloat(localStorage.getItem(wkey(d)));
+    if (!isNaN(v)) { latest = v; break; }
+  }
+  const change = latest !== null ? (latest - first).toFixed(1) : null;
+  startEl.textContent = `${first} kg`;
+  curEl.textContent = latest !== null ? `${latest} kg` : '—';
+  if (change !== null) {
+    const sign = change > 0 ? '+' : '';
+    chgEl.textContent = `${sign}${change} kg`;
+    chgEl.className = 'stat-val ' + (change < 0 ? 'good' : change > 0 ? 'bad' : '');
+  }
+}
+
+// selectDayにweight UI syncを追加
+const _origSelectDay = selectDay;
+// override selectDay to also sync weight UI
+function selectDay(day) {
+  selectedDay = day;
+  document.querySelectorAll('.cal-day').forEach(e => e.classList.remove('selected'));
+  const el = document.getElementById(`cal-day-${day}`);
+  if (el) el.classList.add('selected');
+  const wi = getWeekIndex(day);
+  document.getElementById('calWeekBadge').textContent = WEEKS[wi].label;
+  renderChecklist();
+  updateOverallProgress();
+  syncWeightUI();
+  updateWeightChart();
+}
+
+initWeightChart();
+syncWeightUI();
+</script>
+</body>
+</html>
